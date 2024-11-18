@@ -1,0 +1,6 @@
+PyGithub
+ell
+anthropic
+openai
+tenacity
+colorama
