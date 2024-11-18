@@ -1,4 +1,4 @@
-# GitHub Changelog Generator
+# Git Changelog Generator
 
 AI-powered changelog generator that creates clean, public-safe changelogs from GitHub commits using Claude or GPT-4o-mini.
 
@@ -20,9 +20,9 @@ AI-powered changelog generator that creates clean, public-safe changelogs from G
 2. Set API keys:
    ```bash
    export GITHUB_TOKEN='your-token'           # Required
-   export ANTHROPIC_API_KEY='your-key'        # For Claude
+   export ANTHROPIC_API_KEY='your-key'        # For Claude 3.5+
    # OR
-   export OPENAI_API_KEY='your-key'          # For GPT-4
+   export OPENAI_API_KEY='your-key'          # For GPT-4o-mini
    ```
 
 3. Run:
