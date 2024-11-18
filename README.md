@@ -2,6 +2,8 @@
 
 AI-powered changelog generator that creates clean, public-safe changelogs from GitHub commits using Claude or GPT-4o-mini.
 
+![output3](https://github.com/user-attachments/assets/8c4ced91-1e1c-4b6f-a394-b4f2b84c28e0)
+
 ## Features
 
 - AI-powered commit message formatting with multiple styles
@@ -50,6 +52,8 @@ python change-log.py owner/repo \
 - 🚀 Launched new chat features
 - ✨ Leveled up dashboard
 ```
+
+![CleanShot 2024-11-18 at 20 45 32@2x](https://github.com/user-attachments/assets/d7df1010-48ae-4845-9b46-6ec648aefdb9)
 
 ### Regular (default)
 ```markdown
