@@ -442,7 +442,9 @@ try:
     for commit in commits:
         total_commits += 1
         if total_commits % 10 == 0:
-            print(f"{INFO}🔄 Processing commit {total_commits}/{args.num_commits}...{RESET}")
+            # Update progress message format
+            progress = f"{total_commits}" if args.num_commits is None else f"{total_commits}/{args.num_commits}"
+            print(f"{INFO}🔄 Processing commit {progress}...{RESET}")
                 
         date = commit.commit.author.date.date()
         raw_message = commit.commit.message.split('\n')[0]
