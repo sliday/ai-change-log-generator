@@ -1,4 +1,4 @@
-# Git Changelog Generator
+# Git Changelog AI Generator
 
 AI-powered changelog generator that creates clean, public-safe changelogs from GitHub commits using Claude or GPT-4o-mini.
 
