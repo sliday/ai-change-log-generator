@@ -390,21 +390,55 @@ try:
     print(f"{INFO}ℹ️ Description: {repo.description or 'No description'}{RESET}")
     print(f"{INFO}ℹ️ Repository has {total_commits} total commits{RESET}")
     
-    # Ask about commits
+    # After getting repo info
+    print(f"\n{INFO}🔄 Fetching commit history...{RESET}")
+    latest_date = get_latest_changelog_date()
+    
+    # Convert after_date string to datetime object
+    after_date = None
+    if args.after_date:
+        try:
+            after_date = datetime.strptime(args.after_date, '%Y-%m-%d').date()
+            print(f"{INFO}ℹ️ Filtering commits after: {after_date}{RESET}")
+        except ValueError:
+            print(f"{ERROR}Error: Invalid date format. Please use YYYY-MM-DD{RESET}")
+            sys.exit(1)
+
+    # Get filtered commits
+    filtered_commits = []
+    for commit in repo.get_commits():
+        commit_date = commit.commit.author.date.date()
+        
+        if after_date and commit_date < after_date:
+            continue
+        
+        if latest_date and commit_date <= latest_date:
+            break
+        
+        filtered_commits.append(commit)
+
+    if not filtered_commits:
+        print(f"{WARNING}No commits found after {after_date}{RESET}")
+        exit(0)
+
+    print(f"{INFO}ℹ️ Found {len(filtered_commits)} commits after {after_date}{RESET}")
+    
+    # Ask about number of commits to process
     print(f"\n{INFO}How many commits to process?{RESET}")
-    print("  Enter a number or 'all' for entire history")
-    default_commits = "100"
+    print(f"  Enter a number (max: {len(filtered_commits)}) or 'all'")
+    default_commits = str(min(100, len(filtered_commits)))
     commit_input = input(f"Commits [{default_commits}]: ").strip() or default_commits
     
     if commit_input.lower() == 'all':
-        args.num_commits = None
+        commits = filtered_commits
     else:
         try:
-            args.num_commits = int(commit_input)
+            num_commits = min(int(commit_input), len(filtered_commits))
+            commits = filtered_commits[:num_commits]
         except ValueError:
-            print(f"{WARNING}Invalid input, using default: 100{RESET}")
-            args.num_commits = 100
-    
+            print(f"{WARNING}Invalid input, using default: {default_commits}{RESET}")
+            commits = filtered_commits[:int(default_commits)]
+
     # Ask about grouping
     print(f"\n{INFO}How to group changes?{RESET}")
     print("  1. By day")
@@ -420,22 +454,7 @@ try:
     }
     args.group_by = group_options.get(group_input, "day")
     
-    print(f"\n{INFO}🔄 Fetching commit history...{RESET}")
-    latest_date = get_latest_changelog_date()
-    
-    commits = []
-    for commit in repo.get_commits():
-        commit_date = commit.commit.author.date.date()
-        if latest_date and commit_date <= latest_date:
-            break
-        commits.append(commit)
-        if args.num_commits and len(commits) >= args.num_commits:  # Check if num_commits is not None
-            break
-                
-    if not commits:
-        print("No new commits found since last changelog update.")
-        exit(0)
-            
+    # Process commits
     total_commits = 0
     changelog = {}
     
@@ -443,8 +462,8 @@ try:
         total_commits += 1
         if total_commits % 10 == 0:
             # Update progress message format
-            progress = f"{total_commits}" if args.num_commits is None else f"{total_commits}/{args.num_commits}"
-            print(f"{INFO}🔄 Processing commit {progress}...{RESET}")
+            total = len(commits)  # Use actual number of commits being processed
+            print(f"{INFO}🔄 Processing commit {total_commits}/{total}...{RESET}")
                 
         date = commit.commit.author.date.date()
         raw_message = commit.commit.message.split('\n')[0]
