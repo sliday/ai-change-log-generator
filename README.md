@@ -42,7 +42,8 @@ python change-log.py owner/repo \
   --model anthropic \     # AI provider
   --group-by day \       # day/week/month
   --style regular \      # playful/regular/corporate
-  --branch main          # Branch name
+  --branch main \        # Branch name
+  --after-date 2024-03-01  # Get changes after date
 ```
 
 ## Output Styles

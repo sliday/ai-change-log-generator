@@ -141,7 +141,7 @@ def prompt_for_params(args, repo=None):
         commit_input = input(f"Commits [{default_commits}]: ").strip() or default_commits
         
         if commit_input.lower() == 'all':
-            args.num_commits = float('inf')
+            args.num_commits = None
         else:
             try:
                 args.num_commits = int(commit_input)
@@ -351,6 +351,9 @@ parser.add_argument('--style',
                    choices=list(STYLE_TEMPLATES.keys()),
                    default='regular',
                    help='Changelog style (default: regular)')
+parser.add_argument('--after-date', 
+                   help='Get changes after this date (YYYY-MM-DD format)',
+                   type=str)
 
 # Initialize GitHub client
 g = Github(os.environ.get('GITHUB_TOKEN'))
@@ -394,7 +397,7 @@ try:
     commit_input = input(f"Commits [{default_commits}]: ").strip() or default_commits
     
     if commit_input.lower() == 'all':
-        args.num_commits = float('inf')
+        args.num_commits = None
     else:
         try:
             args.num_commits = int(commit_input)
@@ -426,9 +429,7 @@ try:
         if latest_date and commit_date <= latest_date:
             break
         commits.append(commit)
-        # Convert args.num_commits to int if it's not 'all'
-        max_commits = float('inf') if args.num_commits == 'all' else int(args.num_commits)
-        if len(commits) >= max_commits:
+        if args.num_commits and len(commits) >= args.num_commits:  # Check if num_commits is not None
             break
                 
     if not commits:
