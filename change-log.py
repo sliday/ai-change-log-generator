@@ -205,13 +205,13 @@ No introductions or comments, just the formatted content.
     return base_instructions
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
-@ell.simple(model="claude-3-5-sonnet-20240620", max_tokens=400, client=anthropic_client)
+@ell.simple(model="claude-3-5-sonnet-20240620", max_tokens=4000, client=anthropic_client)
 def format_commit_message_anthropic(message: str, diff: str, date: str, style: str) -> str:
     """Anthropic-based commit message formatter"""
     return get_universal_prompt(message, 'commit', style)
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
-@ell.simple(model="gpt-4o-mini", max_tokens=400, client=openai_client)
+@ell.simple(model="gpt-4o-mini", max_tokens=4000, client=openai_client)
 def format_commit_message_openai(message: str, diff: str, date: str, style: str) -> str:
     """OpenAI-based commit message formatter"""
     return get_universal_prompt(message, 'commit', style)
@@ -250,7 +250,7 @@ def read_existing_changelog():
         return f"# Changelog\n\n## {today}\n\n"
 
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
-@ell.simple(model="claude-3-5-sonnet-20240620", max_tokens=400, client=anthropic_client)
+@ell.simple(model="claude-3-5-sonnet-20240620", max_tokens=4000, client=anthropic_client)
 def generate_changelog_summary(changelog_content: str, style: str) -> str:
     """Generate a summary of the changelog content"""
     return get_universal_prompt(changelog_content, 'summary', style)
@@ -313,19 +313,16 @@ def count_total_commits(repo, branch):
 def format_period_date(date, group_by):
     """Format date based on grouping period"""
     if group_by == 'day':
-        # Format: 18 Nov 2024
-        return date.strftime('%d %b %Y')
+        # Format: November 18, 2024
+        return date.strftime('%B %d, %Y')
     elif group_by == 'week':
-        # Get start and end of week (Monday to Sunday)
+        # Get start and end of week
         week_start = date - timedelta(days=date.weekday())
         week_end = week_start + timedelta(days=6)
-        # Format: 18 Nov 2024 - 24 Nov 2024
-        return f"{week_start.strftime('%d %b %Y')} - {week_end.strftime('%d %b %Y')}"
+        return f"{week_start.strftime('%B %d')} - {week_end.strftime('%B %d, %Y')}"
     elif group_by == 'month':
-        # Return tuple of (year, month) for hierarchical formatting
-        return (date.strftime('%Y'), date.strftime('%B'))  # %B gives full month name
-    else:
-        return date.strftime('%d %b %Y')  # Default to daily format
+        return date.strftime('%B %Y')
+    return date.strftime('%B %d, %Y')  # Default to daily format
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description='Generate changelog from GitHub repository')
@@ -489,34 +486,19 @@ try:
     print(f"\nProcessed {total_commits} commits successfully")
     print("\nGenerating changelog file...")
 
-    # Sort dates in descending order
-    sorted_dates = sorted(changelog.keys(), reverse=True)
-
-    # Always group commits (will use 'day' by default from args.group_by)
-    changelog = group_commits_by_period(changelog, args.group_by)
-    sorted_dates = sorted(changelog.keys(), reverse=True)
-
     # Generate formatted changelog
     formatted_changelog = "# Changelog\n\n"
-    current_year = None
-    current_month = None
-
-    for period in sorted_dates:
-        year = period.strftime('%Y')
-        month = period.strftime('%B')  # Full month name
-
-        # Add year header if it's new
-        if year != current_year:
-            current_year = year
-            formatted_changelog += f"## {year}\n\n"
+    
+    # Sort dates in descending order
+    sorted_dates = sorted(changelog.keys(), reverse=True)
+    
+    for date in sorted_dates:
+        # Add formatted date header
+        formatted_date = format_period_date(date, args.group_by)
+        formatted_changelog += f"## {formatted_date}\n"
         
-        # Always add month header
-        if month != current_month:
-            current_month = month
-            formatted_changelog += f"### {month}\n\n"
-
         # Add commit messages
-        for message in changelog[period]:
+        for message in changelog[date]:
             formatted_changelog += f"{message}\n"
         
         formatted_changelog += "\n"
